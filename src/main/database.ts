@@ -1,0 +1,147 @@
+import Database from 'better-sqlite3'
+import { app } from 'electron'
+import path from 'path'
+
+export interface Person {
+  id: number
+  name: string
+  email: string
+  order: number
+}
+
+export interface Shift {
+  id: number
+  name: string
+  order: number
+  mondayPersonIds: string  // JSON 数组
+  fridayPersonIds: string  // JSON 数组
+}
+
+export interface Schedule {
+  id: number
+  weekStart: string  // 周一日期 YYYY-MM-DD
+  shiftId: number
+  scheduleData: string  // JSON 对象
+}
+
+class DatabaseManager {
+  private db: Database.Database
+
+  constructor() {
+    const dbPath = path.join(app.getPath('userData'), 'onduty.db')
+    this.db = new Database(dbPath)
+    this.initTables()
+  }
+
+  private initTables() {
+    // 创建人员表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS persons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        \`order\` INTEGER NOT NULL
+      )
+    `)
+
+    // 创建班次表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS shifts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        \`order\` INTEGER NOT NULL,
+        mondayPersonIds TEXT NOT NULL,
+        fridayPersonIds TEXT NOT NULL
+      )
+    `)
+
+    // 创建排班记录表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS schedules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        weekStart TEXT NOT NULL UNIQUE,
+        shiftId INTEGER NOT NULL,
+        scheduleData TEXT NOT NULL
+      )
+    `)
+  }
+
+  // 人员管理
+  getAllPersons(): Person[] {
+    return this.db.prepare('SELECT * FROM persons ORDER BY `order`').all() as Person[]
+  }
+
+  addPerson(person: Omit<Person, 'id'>): Person {
+    const result = this.db.prepare(
+      'INSERT INTO persons (name, email, `order`) VALUES (?, ?, ?)'
+    ).run(person.name, person.email, person.order)
+    return { id: result.lastInsertRowid as number, ...person }
+  }
+
+  updatePerson(person: Person): void {
+    this.db.prepare(
+      'UPDATE persons SET name = ?, email = ?, `order` = ? WHERE id = ?'
+    ).run(person.name, person.email, person.order, person.id)
+  }
+
+  deletePerson(id: number): void {
+    this.db.prepare('DELETE FROM persons WHERE id = ?').run(id)
+  }
+
+  // 班次管理
+  getAllShifts(): Shift[] {
+    return this.db.prepare('SELECT * FROM shifts ORDER BY `order`').all() as Shift[]
+  }
+
+  addShift(shift: Omit<Shift, 'id'>): Shift {
+    const result = this.db.prepare(
+      'INSERT INTO shifts (name, `order`, mondayPersonIds, fridayPersonIds) VALUES (?, ?, ?, ?)'
+    ).run(shift.name, shift.order, shift.mondayPersonIds, shift.fridayPersonIds)
+    return { id: result.lastInsertRowid as number, ...shift }
+  }
+
+  updateShift(shift: Shift): void {
+    this.db.prepare(
+      'UPDATE shifts SET name = ?, `order` = ?, mondayPersonIds = ?, fridayPersonIds = ? WHERE id = ?'
+    ).run(shift.name, shift.order, shift.mondayPersonIds, shift.fridayPersonIds, shift.id)
+  }
+
+  deleteShift(id: number): void {
+    this.db.prepare('DELETE FROM shifts WHERE id = ?').run(id)
+  }
+
+  // 排班记录管理
+  getSchedule(weekStart: string): Schedule | undefined {
+    return this.db.prepare('SELECT * FROM schedules WHERE weekStart = ?').get(weekStart) as Schedule | undefined
+  }
+
+  saveSchedule(schedule: Omit<Schedule, 'id'>): void {
+    this.db.prepare(
+      'INSERT OR REPLACE INTO schedules (weekStart, shiftId, scheduleData) VALUES (?, ?, ?)'
+    ).run(schedule.weekStart, schedule.shiftId, schedule.scheduleData)
+  }
+
+  getAllSchedules(): Schedule[] {
+    return this.db.prepare('SELECT * FROM schedules ORDER BY weekStart DESC').all() as Schedule[]
+  }
+
+  close() {
+    this.db.close()
+  }
+}
+
+let dbInstance: DatabaseManager | null = null
+
+export function getDatabase(): DatabaseManager {
+  if (!dbInstance) {
+    dbInstance = new DatabaseManager()
+  }
+  return dbInstance
+}
+
+export function closeDatabase() {
+  if (dbInstance) {
+    dbInstance.close()
+    dbInstance = null
+  }
+}

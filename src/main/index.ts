@@ -2,6 +2,8 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { setupIpcHandlers } from './ipc-handlers'
+import { closeDatabase } from './database'
 
 function createWindow(): void {
   // Create the browser window.
@@ -52,6 +54,7 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  setupIpcHandlers()
   createWindow()
 
   app.on('activate', function () {
@@ -72,3 +75,7 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+app.on('before-quit', () => {
+  closeDatabase()
+})

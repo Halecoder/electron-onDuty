@@ -18,17 +18,25 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "rebuild": "electron-rebuild -f -w better-sqlit3"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "electron-updater": "^6.3.9"
+    "@element-plus/icons-vue": "^2.3.2",
+    "better-sqlite3": "^12.5.0",
+    "electron-updater": "^6.3.9",
+    "element-plus": "^2.13.0",
+    "patch-package": "^8.0.1",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@electron/rebuild": "^4.0.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.19.1",
     "@vitejs/plugin-vue": "^6.0.2",
     "electron": "^39.2.6",
