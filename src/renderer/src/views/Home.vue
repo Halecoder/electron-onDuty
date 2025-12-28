@@ -2,13 +2,23 @@
   <div class="home-container">
     <div class="header">
       <el-button @click="gotoPreviousWeek" :icon="ArrowLeft"> 上一周 </el-button>
-
       <div class="week-title">
-        <h2>{{ formatDate(currentWeekStart) }} 值班安排</h2>
-        <p class="shift-name" v-if="currentShift">班次：{{ currentShift.name }}</p>
-      </div>
-
+          <h2>{{ formatDate(currentWeekStart) }} 值班安排</h2>
+          <p class="shift-name" v-if="currentShift">班次：{{ currentShift.name }}</p>
+        </div>
       <el-button @click="gotoNextWeek" :icon="ArrowRight"> 下一周 </el-button>
+
+      <!-- <div class="week-selector">
+        <el-date-picker
+          v-model="selectedWeek"
+          type="week"
+          format="YYYY 第 ww 周"
+          value-format="YYYY-MM-DD"
+          placeholder="选择周"
+          @change="handleWeekChange"
+          :clearable="false"
+        />
+      </div> -->
 
       <el-button type="primary" @click="gotoSettings" :icon="Setting" class="settings-btn">
         设置
@@ -35,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, ArrowRight, Setting } from '@element-plus/icons-vue'
 import ScheduleTable from '../components/ScheduleTable.vue'
@@ -58,9 +68,12 @@ const basicData = ref<BasicData | null>(null)
 const schedule = ref<WeekSchedule | null>(null)
 const weekendSchedule = ref<WeekendSchedule | null>(null)
 const currentShift = ref<Shift | null>(null)
+const selectedWeek = ref('')
 
 onMounted(async () => {
   currentWeekStart.value = getWeekStart(new Date())
+  selectedWeek.value = currentWeekStart.value
+
   await loadData()
   await loadSchedule()
 })
@@ -98,6 +111,18 @@ async function handleRebuildSchedule() {
     throw new Error('重建失败')
   }
 }
+
+async function handleWeekChange(value: string) {
+  if (value) {
+    currentWeekStart.value = getWeekStart(new Date(value))
+    await loadSchedule()
+  }
+}
+
+// 监听 currentWeekStart 变化，同步更新日历选择器
+watch(currentWeekStart, (newValue) => {
+  selectedWeek.value = newValue
+})
 
 async function loadSchedule() {
   // 加载工作日排班（现有逻辑保持不变）
