@@ -38,7 +38,20 @@ export interface BasicData {
   weekendRotationIndex_2: number // 周末轮换索引2
 }
 
-class DatabaseManager {
+export interface EmailConfig {
+  id: number
+  smtpHost: string
+  smtpPort: number
+  smtpSecure: boolean
+  smtpUser: string
+  smtpPass: string
+  emailSuffix: string
+  cronExpression: string
+  enabled: boolean
+  ccEmails: string
+}
+
+export class DatabaseManager {
   private db: Database.Database
 
   constructor() {
@@ -112,10 +125,34 @@ class DatabaseManager {
   )
   `)
 
+   // 创建邮件配置表
+   this.db.exec(`
+   CREATE TABLE IF NOT EXISTS email_config (
+     id INTEGER PRIMARY KEY CHECK (id = 1),
+     smtpHost TEXT NOT NULL,
+     smtpPort INTEGER NOT NULL,
+     smtpSecure INTEGER NOT NULL DEFAULT 0,
+     smtpUser TEXT NOT NULL,
+     smtpPass TEXT NOT NULL,
+     emailSuffix TEXT NOT NULL,
+     cronExpression TEXT NOT NULL DEFAULT '0 14 * * 1',
+     enabled INTEGER NOT NULL DEFAULT 0,
+     ccEmails TEXT NOT NULL DEFAULT ''
+   )
+ `)
+
   // 更新初始化数据
   const existingData = this.db.prepare('SELECT COUNT(*) as count FROM basic_data').get() as { count: number }
   if (existingData.count === 0) {
     this.db.prepare('INSERT INTO basic_data (id, baseWeek, weekendRotationIndex_1, weekendRotationIndex_2) VALUES (1, ?, 0, 0)').run('2024-01-01')
+  }
+
+  const existingConfig = this.db.prepare('SELECT COUNT(*) as count FROM email_config').get() as { count: number }
+  if (existingConfig.count === 0) {
+    this.db.prepare(`
+      INSERT INTO email_config (id, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, emailSuffix, cronExpression, enabled, ccEmails)
+      VALUES (1, '', 587, 0, '', '', '@company.com', '0 14 * * 1', 0, '')
+    `).run()
   }
 }
 
@@ -218,6 +255,23 @@ class DatabaseManager {
 
   close() {
     this.db.close()
+  }
+
+  getEmailConfig(): EmailConfig {
+    return this.db.prepare('SELECT * FROM email_config WHERE id = 1').get() as EmailConfig
+  }
+
+  updateEmailConfig(config: EmailConfig): void {
+    this.db.prepare(`
+      UPDATE email_config SET
+      smtpHost = ?, smtpPort = ?, smtpSecure = ?, smtpUser = ?,
+      smtpPass = ?, emailSuffix = ?, cronExpression = ?,
+      enabled = ?, ccEmails = ? WHERE id = 1
+    `).run(
+      config.smtpHost, config.smtpPort, config.smtpSecure ? 1 : 0,
+      config.smtpUser, config.smtpPass, config.emailSuffix,
+      config.cronExpression, config.enabled ? 1 : 0, config.ccEmails
+    )
   }
 }
 

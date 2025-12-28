@@ -30,7 +30,18 @@ const api = {
 
   // 清除排班记录 API
   clearSchedulesByShiftId: (shiftId) => ipcRenderer.invoke('clear-schedules-by-shift-id', shiftId),
-  clearAllSchedules: () => ipcRenderer.invoke('clear-all-schedules')
+  clearAllSchedules: () => ipcRenderer.invoke('clear-all-schedules'),
+
+  // 邮件相关 API
+  getEmailConfig: () => ipcRenderer.invoke('get-email-config'),
+  updateEmailConfig: (config) => ipcRenderer.invoke('update-email-config', config),
+  sendTestEmail: () => ipcRenderer.invoke('send-test-email'),
+  sendScheduleEmail: (weekStart) => ipcRenderer.invoke('send-schedule-email', weekStart),
+  getCurrentWeek: () => ipcRenderer.invoke('get-current-week'),
+
+  // 自启动相关 API
+  setAutoStart: (enable) => ipcRenderer.invoke('set-auto-start', enable),
+  getAutoStartStatus: () => ipcRenderer.invoke('get-auto-start-status')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

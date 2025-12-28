@@ -4,7 +4,41 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { setupIpcHandlers } from './ipc-handlers'
 import { closeDatabase } from './database'
+import { DatabaseManager, getDatabase } from './database'
+import { CronService } from './cronService'
+import { EmailService } from './emailService'
+import AutoLaunch from 'auto-launch'
 
+let db: DatabaseManager
+let cronService: CronService
+let autoLauncher: AutoLaunch
+
+function setAutoStart(enable: boolean): void {
+  if (enable) {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      openAsHidden: true
+    })
+    console.log('开机自启动已启用')
+  } else {
+    app.setLoginItemSettings({
+      openAtLogin: false
+    })
+    console.log('开机自启动已禁用')
+  }
+}
+
+function getAutoStartStatus(): boolean {
+  const loginItemSettings = app.getLoginItemSettings()
+  return loginItemSettings.openAtLogin || false
+}
+
+function initializeAutoLauncher(): void {
+  autoLauncher = new AutoLaunch({
+    name: '排班系统',
+    path: app.getPath('exe')
+  })
+}
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -18,7 +52,6 @@ function createWindow(): void {
       sandbox: false
     }
   })
-
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -44,6 +77,14 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
+   // Initialize database and services
+   db = new DatabaseManager()
+   cronService = new CronService(db)
+   initializeAutoLauncher()
+
+   // Start cron job
+   cronService.startCronJob()
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -54,6 +95,43 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  ipcMain.handle('get-email-config', () => {
+    return db.getEmailConfig()
+  })
+
+  ipcMain.handle('update-email-config', (_, config) => {
+    db.updateEmailConfig(config)
+  })
+
+  ipcMain.handle('send-test-email', async () => {
+    try {
+      const emailService = new EmailService(db)
+      await emailService.sendTestEmail()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('send-schedule-email', async (_, weekStart) => {
+    try {
+      const emailService = new EmailService(db) // Updated: pass db instead of config
+      await emailService.sendScheduleEmail(weekStart) // Updated: method signature changed
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  // Auto-startup handlers
+  ipcMain.handle('set-auto-start', (_, enable) => {
+    setAutoStart(enable)
+  })
+
+  ipcMain.handle('get-auto-start-status', () => {
+    return getAutoStartStatus()
+  })
+
   setupIpcHandlers()
   createWindow()
 
@@ -63,7 +141,6 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
-
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.

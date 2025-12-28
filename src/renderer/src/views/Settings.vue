@@ -30,6 +30,15 @@
             <el-icon><Setting /></el-icon>
             <span>基础数据</span>
           </el-menu-item>
+          <el-menu-item index="email">
+            <el-icon><Message /></el-icon>
+            <span>邮件配置</span>
+          </el-menu-item>
+
+          <el-menu-item index="autostart">
+            <el-icon><Monitor /></el-icon>
+            <span>启动管理</span>
+          </el-menu-item>
         </el-menu>
       </div>
 
@@ -60,6 +69,15 @@
           :basic-data="basicData"
           @refresh="loadBasicData"
         />
+
+        <EmailManager
+          v-if="activeMenu === 'email'"
+          @refresh="loadEmailConfig"
+        />
+
+        <AutoStartManager
+          v-if="activeMenu === 'autostart'"
+        />
       </div>
     </div>
   </div>
@@ -68,11 +86,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, User, Calendar, Moon, Setting } from '@element-plus/icons-vue'
+import { ArrowLeft, User, Calendar, Moon, Setting, Message, Monitor } from '@element-plus/icons-vue'
 import PersonManager from '../components/PersonManager.vue'
 import ShiftManager from '../components/ShiftManager.vue'
 import WeekendManager from '../components/WeekendManager.vue'
 import BasicDataManager from '../components/BasicDataManager.vue'
+import EmailManager from '../components/EmailManager.vue'
+import AutoStartManager from '../components/AutoStartManager.vue'
 import { Person, Shift, WeekendShift, BasicData } from '../types'
 
 const router = useRouter()
@@ -131,6 +151,10 @@ async function loadWeekendShift() {
 
 async function loadBasicData() {
   basicData.value = await window.api.getBasicData()
+}
+
+async function loadEmailConfig() {
+  // 邮件配置由组件内部加载
 }
 
 function handleMenuSelect(key: string) {

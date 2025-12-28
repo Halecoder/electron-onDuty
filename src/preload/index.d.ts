@@ -64,6 +64,17 @@ interface API {
   // 清除排班记录
   clearSchedulesByShiftId: (shiftId: number) => Promise<void>
   clearAllSchedules: () => Promise<void>
+
+  // 邮件相关类型
+  getEmailConfig: () => Promise<EmailConfig>
+  updateEmailConfig: (config: EmailConfig) => Promise<void>
+  sendTestEmail: () => Promise<{ success: boolean; error?: string }>
+  sendScheduleEmail: (weekStart: string) => Promise<{ success: boolean; error?: string }>
+  getCurrentWeek: () => Promise<string>
+
+  // 自启动相关类型
+  setAutoStart: (enable: boolean) => Promise<void>
+  getAutoStartStatus: () => Promise<boolean>  
 }
 
 declare global {
