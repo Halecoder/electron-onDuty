@@ -125,6 +125,14 @@ class DatabaseManager {
     return this.db.prepare('SELECT * FROM schedules ORDER BY weekStart DESC').all() as Schedule[]
   }
 
+  clearSchedulesByShiftId(shiftId: number): void {
+    this.db.prepare('DELETE FROM schedules WHERE shiftId = ?').run(shiftId)
+  }
+
+  clearAllSchedules(): void {
+    this.db.prepare('DELETE FROM schedules').run()
+  }
+
   close() {
     this.db.close()
   }

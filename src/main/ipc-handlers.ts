@@ -50,4 +50,12 @@ export function setupIpcHandlers() {
   ipcMain.handle('get-all-schedules', () => {
     return db.getAllSchedules()
   })
+
+  ipcMain.handle('clear-schedules-by-shift-id', (_, shiftId) => {
+    db.clearSchedulesByShiftId(shiftId)
+  })
+
+  ipcMain.handle('clear-all-schedules', () => {
+    db.clearAllSchedules()
+  })
 }

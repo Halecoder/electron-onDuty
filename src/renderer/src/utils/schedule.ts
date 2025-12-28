@@ -42,25 +42,32 @@ export function generateSchedule(
   return schedule
 }
 
+function formatLocalDate(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function getWeekStart(date: Date): string {
   const d = new Date(date)
   const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1) // 调整到周一
-  d.setDate(diff)
+  const diff = day === 0 ? -6 : 1 - day // 周日回到本周一
+  d.setDate(d.getDate() + diff)
   d.setHours(0, 0, 0, 0)
-  return d.toISOString().split('T')[0]
+  return formatLocalDate(d)
 }
 
 export function getNextWeekStart(weekStart: string): string {
   const d = new Date(weekStart)
   d.setDate(d.getDate() + 7)
-  return d.toISOString().split('T')[0]
+  return formatLocalDate(d)
 }
 
 export function getPreviousWeekStart(weekStart: string): string {
   const d = new Date(weekStart)
   d.setDate(d.getDate() - 7)
-  return d.toISOString().split('T')[0]
+  return formatLocalDate(d)
 }
 
 export function formatDate(dateStr: string): string {
@@ -73,7 +80,7 @@ export function getWeekDates(weekStart: string): string[] {
   const d = new Date(weekStart)
 
   for (let i = 0; i < 5; i++) {
-    dates.push(d.toISOString().split('T')[0])
+    dates.push(formatLocalDate(d))
     d.setDate(d.getDate() + 1)
   }
 

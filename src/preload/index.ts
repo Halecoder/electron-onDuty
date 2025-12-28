@@ -18,7 +18,10 @@ const api = {
   // 排班记录
   getSchedule: (weekStart) => ipcRenderer.invoke('get-schedule', weekStart),
   saveSchedule: (schedule) => ipcRenderer.invoke('save-schedule', schedule),
-  getAllSchedules: () => ipcRenderer.invoke('get-all-schedules')
+  getAllSchedules: () => ipcRenderer.invoke('get-all-schedules'),
+
+  clearSchedulesByShiftId: (shiftId: number) => ipcRenderer.invoke('clear-schedules-by-shift-id', shiftId),
+  clearAllSchedules: () => ipcRenderer.invoke('clear-all-schedules')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
