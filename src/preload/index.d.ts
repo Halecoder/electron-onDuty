@@ -22,20 +22,48 @@ interface Schedule {
   scheduleData: string
 }
 
+interface WeekendShift {
+  id: number
+  name: string
+  leaderIds: string
+  pioneerIds: string
+}
+
+interface BasicData {
+  id: number
+  baseWeek: string
+  weekendRotationIndex: number
+}
+
 interface API {
+  // 人员管理
   getAllPersons: () => Promise<Person[]>
   addPerson: (person: Omit<Person, 'id'>) => Promise<Person>
   updatePerson: (person: Person) => Promise<void>
   deletePerson: (id: number) => Promise<void>
 
+  // 班次管理
   getAllShifts: () => Promise<Shift[]>
   addShift: (shift: Omit<Shift, 'id'>) => Promise<Shift>
   updateShift: (shift: Shift) => Promise<void>
   deleteShift: (id: number) => Promise<void>
 
+  // 排班记录
   getSchedule: (weekStart: string) => Promise<Schedule | undefined>
   saveSchedule: (schedule: Omit<Schedule, 'id'>) => Promise<void>
   getAllSchedules: () => Promise<Schedule[]>
+
+  // 周末班次
+  getAllWeekendShifts: () => Promise<WeekendShift[]>
+  updateWeekendShift: (shift: WeekendShift) => Promise<void>
+
+  // 基础数据
+  getBasicData: () => Promise<BasicData>
+  updateBasicData: (data: BasicData) => Promise<void>
+
+  // 清除排班记录
+  clearSchedulesByShiftId: (shiftId: number) => Promise<void>
+  clearAllSchedules: () => Promise<void>
 }
 
 declare global {

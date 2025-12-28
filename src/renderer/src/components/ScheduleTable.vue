@@ -1,21 +1,24 @@
 <template>
-  <el-table :data="tableData" border style="width: 100%" :cell-style="getCellStyle">
-    <el-table-column label="姓名（邮箱）" width="300" fixed>
-      <template #default="scope"> {{ scope.row.name }}（{{ scope.row.email }}） </template>
-    </el-table-column>
+  <div class="day-table">
+    <h3 class="table-title">工作日值班</h3>
+    <el-table :data="tableData" border style="width: 100%" :cell-style="getCellStyle">
+      <el-table-column label="姓名（邮箱）" width="300" fixed>
+        <template #default="scope"> {{ scope.row.name }}（{{ scope.row.email }}） </template>
+      </el-table-column>
 
-    <el-table-column
-      v-for="(day, index) in weekDays"
-      :key="day"
-      :label="day"
-      align="center"
-      width="120"
-    >
-      <template #default="scope">
-        <span v-if="scope.row[`day${index}`]">✓</span>
-      </template>
-    </el-table-column>
-  </el-table>
+      <el-table-column
+        v-for="(day, index) in weekDays"
+        :key="day"
+        :label="day"
+        align="center"
+        width="120"
+      >
+        <template #default="scope">
+          <span v-if="scope.row[`day${index}`]">✓</span>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -66,6 +69,17 @@ function getCellStyle({ row, column, rowIndex, columnIndex }) {
 </script>
 
 <style scoped>
+.day-table {
+  margin-top: 30px;
+}
+
+.table-title {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
 :deep(.el-table) {
   font-size: 14px;
 }

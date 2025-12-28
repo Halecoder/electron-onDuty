@@ -13,15 +13,28 @@ export interface Shift {
   id: number
   name: string
   order: number
-  mondayPersonIds: string  // JSON 数组
-  fridayPersonIds: string  // JSON 数组
+  mondayPersonIds: string // JSON 数组
+  fridayPersonIds: string // JSON 数组
 }
 
 export interface Schedule {
   id: number
-  weekStart: string  // 周一日期 YYYY-MM-DD
+  weekStart: string // 周一日期 YYYY-MM-DD
   shiftId: number
-  scheduleData: string  // JSON 对象
+  scheduleData: string // JSON 对象
+}
+
+export interface WeekendShift {
+  id: number
+  name: string
+  leaderIds: string  // JSON 数组 - 组长人员ID
+  pioneerIds: string // JSON 数组 - 加班先锋人员ID
+}
+
+export interface BasicData {
+  id: number
+  baseWeek: string  // 基准周 YYYY-MM-DD
+  weekendRotationIndex: number  // 周末轮换索引
 }
 
 class DatabaseManager {
@@ -31,6 +44,17 @@ class DatabaseManager {
     const dbPath = path.join(app.getPath('userData'), 'onduty.db')
     this.db = new Database(dbPath)
     this.initTables()
+    this.initDefaultData() // 添加默认数据初始化
+  }
+
+  private initDefaultData() {
+    // 初始化默认周末班次
+    const existingWeekendShifts = this.db.prepare('SELECT COUNT(*) as count FROM weekend_shifts').get() as { count: number }
+    if (existingWeekendShifts.count === 0) {
+      this.db.prepare(
+        'INSERT INTO weekend_shifts (name, leaderIds, pioneerIds) VALUES (?, ?, ?)'
+      ).run('周末班次', '[]', '[]')
+    }
   }
 
   private initTables() {
@@ -64,6 +88,35 @@ class DatabaseManager {
         scheduleData TEXT NOT NULL
       )
     `)
+
+    // 创建周末班次表
+    this.db.exec(`
+  CREATE TABLE IF NOT EXISTS weekend_shifts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    leaderIds TEXT NOT NULL,
+    pioneerIds TEXT NOT NULL
+  )
+`)
+
+    // 创建基础数据表
+    this.db.exec(`
+  CREATE TABLE IF NOT EXISTS basic_data (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    baseWeek TEXT NOT NULL,
+    weekendRotationIndex INTEGER NOT NULL DEFAULT 0
+  )
+`)
+
+    // 初始化基础数据
+    const existingData = this.db.prepare('SELECT COUNT(*) as count FROM basic_data').get() as {
+      count: number
+    }
+    if (existingData.count === 0) {
+      this.db
+        .prepare('INSERT INTO basic_data (id, baseWeek, weekendRotationIndex) VALUES (1, ?, 0)')
+        .run('2024-01-01')
+    }
   }
 
   // 人员管理
@@ -72,16 +125,16 @@ class DatabaseManager {
   }
 
   addPerson(person: Omit<Person, 'id'>): Person {
-    const result = this.db.prepare(
-      'INSERT INTO persons (name, email, `order`) VALUES (?, ?, ?)'
-    ).run(person.name, person.email, person.order)
+    const result = this.db
+      .prepare('INSERT INTO persons (name, email, `order`) VALUES (?, ?, ?)')
+      .run(person.name, person.email, person.order)
     return { id: result.lastInsertRowid as number, ...person }
   }
 
   updatePerson(person: Person): void {
-    this.db.prepare(
-      'UPDATE persons SET name = ?, email = ?, `order` = ? WHERE id = ?'
-    ).run(person.name, person.email, person.order, person.id)
+    this.db
+      .prepare('UPDATE persons SET name = ?, email = ?, `order` = ? WHERE id = ?')
+      .run(person.name, person.email, person.order, person.id)
   }
 
   deletePerson(id: number): void {
@@ -94,31 +147,62 @@ class DatabaseManager {
   }
 
   addShift(shift: Omit<Shift, 'id'>): Shift {
-    const result = this.db.prepare(
-      'INSERT INTO shifts (name, `order`, mondayPersonIds, fridayPersonIds) VALUES (?, ?, ?, ?)'
-    ).run(shift.name, shift.order, shift.mondayPersonIds, shift.fridayPersonIds)
+    const result = this.db
+      .prepare(
+        'INSERT INTO shifts (name, `order`, mondayPersonIds, fridayPersonIds) VALUES (?, ?, ?, ?)'
+      )
+      .run(shift.name, shift.order, shift.mondayPersonIds, shift.fridayPersonIds)
     return { id: result.lastInsertRowid as number, ...shift }
   }
 
   updateShift(shift: Shift): void {
-    this.db.prepare(
-      'UPDATE shifts SET name = ?, `order` = ?, mondayPersonIds = ?, fridayPersonIds = ? WHERE id = ?'
-    ).run(shift.name, shift.order, shift.mondayPersonIds, shift.fridayPersonIds, shift.id)
+    this.db
+      .prepare(
+        'UPDATE shifts SET name = ?, `order` = ?, mondayPersonIds = ?, fridayPersonIds = ? WHERE id = ?'
+      )
+      .run(shift.name, shift.order, shift.mondayPersonIds, shift.fridayPersonIds, shift.id)
   }
 
   deleteShift(id: number): void {
     this.db.prepare('DELETE FROM shifts WHERE id = ?').run(id)
   }
 
+
+  // 周末班次管理
+getAllWeekendShifts(): WeekendShift[] {
+  return this.db.prepare('SELECT * FROM weekend_shifts').all() as WeekendShift[]
+}
+
+updateWeekendShift(shift: WeekendShift): void {
+  this.db.prepare(
+    'UPDATE weekend_shifts SET name = ?, leaderIds = ?, pioneerIds = ? WHERE id = ?'
+  ).run(shift.name, shift.leaderIds, shift.pioneerIds, shift.id)
+}
+
+// 基础数据管理
+getBasicData(): BasicData {
+  return this.db.prepare('SELECT * FROM basic_data WHERE id = 1').get() as BasicData
+}
+
+updateBasicData(data: BasicData): void {
+  this.db.prepare(
+    'UPDATE basic_data SET baseWeek = ?, weekendRotationIndex = ? WHERE id = 1'
+  ).run(data.baseWeek, data.weekendRotationIndex)
+}
+
   // 排班记录管理
   getSchedule(weekStart: string): Schedule | undefined {
-    return this.db.prepare('SELECT * FROM schedules WHERE weekStart = ?').get(weekStart) as Schedule | undefined
+    return this.db.prepare('SELECT * FROM schedules WHERE weekStart = ?').get(weekStart) as
+      | Schedule
+      | undefined
   }
 
   saveSchedule(schedule: Omit<Schedule, 'id'>): void {
-    this.db.prepare(
-      'INSERT OR REPLACE INTO schedules (weekStart, shiftId, scheduleData) VALUES (?, ?, ?)'
-    ).run(schedule.weekStart, schedule.shiftId, schedule.scheduleData)
+    this.db
+      .prepare(
+        'INSERT OR REPLACE INTO schedules (weekStart, shiftId, scheduleData) VALUES (?, ?, ?)'
+      )
+      .run(schedule.weekStart, schedule.shiftId, schedule.scheduleData)
   }
 
   getAllSchedules(): Schedule[] {

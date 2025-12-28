@@ -3,24 +3,33 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  // 人员管理
+  // 现有人员管理 API
   getAllPersons: () => ipcRenderer.invoke('get-all-persons'),
   addPerson: (person) => ipcRenderer.invoke('add-person', person),
   updatePerson: (person) => ipcRenderer.invoke('update-person', person),
   deletePerson: (id) => ipcRenderer.invoke('delete-person', id),
 
-  // 班次管理
+  // 现有班次管理 API
   getAllShifts: () => ipcRenderer.invoke('get-all-shifts'),
   addShift: (shift) => ipcRenderer.invoke('add-shift', shift),
   updateShift: (shift) => ipcRenderer.invoke('update-shift', shift),
   deleteShift: (id) => ipcRenderer.invoke('delete-shift', id),
 
-  // 排班记录
+  // 现有排班记录 API
   getSchedule: (weekStart) => ipcRenderer.invoke('get-schedule', weekStart),
   saveSchedule: (schedule) => ipcRenderer.invoke('save-schedule', schedule),
   getAllSchedules: () => ipcRenderer.invoke('get-all-schedules'),
 
-  clearSchedulesByShiftId: (shiftId: number) => ipcRenderer.invoke('clear-schedules-by-shift-id', shiftId),
+  // 新增周末班次 API
+  getAllWeekendShifts: () => ipcRenderer.invoke('get-all-weekend-shifts'),
+  updateWeekendShift: (shift) => ipcRenderer.invoke('update-weekend-shift', shift),
+
+  // 新增基础数据 API
+  getBasicData: () => ipcRenderer.invoke('get-basic-data'),
+  updateBasicData: (data) => ipcRenderer.invoke('update-basic-data'),
+
+  // 清除排班记录 API
+  clearSchedulesByShiftId: (shiftId) => ipcRenderer.invoke('clear-schedules-by-shift-id', shiftId),
   clearAllSchedules: () => ipcRenderer.invoke('clear-all-schedules')
 }
 

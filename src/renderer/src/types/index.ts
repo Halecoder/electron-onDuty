@@ -24,3 +24,20 @@ export interface Person {
     thursday: DaySchedule
     friday: DaySchedule
   }
+
+  export interface WeekendShift {
+    id: number
+    name: string
+    leaderIds: number[]
+    pioneerIds: number[]
+  }
+
+  export interface BasicData {
+    id: number
+    baseWeek: string
+    weekendRotationIndex: number
+  }
+
+  export interface WeekendSchedule {
+    saturday: number[]  // 值班人员ID数组
+  }

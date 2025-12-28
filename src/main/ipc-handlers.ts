@@ -58,4 +58,21 @@ export function setupIpcHandlers() {
   ipcMain.handle('clear-all-schedules', () => {
     db.clearAllSchedules()
   })
+
+  // 添加周末班次和基础数据的 IPC 处理器
+  ipcMain.handle('get-all-weekend-shifts', () => {
+    return db.getAllWeekendShifts()
+  })
+
+  ipcMain.handle('update-weekend-shift', (_, shift) => {
+    db.updateWeekendShift(shift)
+  })
+
+  ipcMain.handle('get-basic-data', () => {
+    return db.getBasicData()
+  })
+
+  ipcMain.handle('update-basic-data', (_, data) => {
+    db.updateBasicData(data)
+  })
 }
