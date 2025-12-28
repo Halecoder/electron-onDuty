@@ -24,7 +24,7 @@
           </el-menu-item>
           <el-menu-item index="weekend">
             <el-icon><Moon /></el-icon>
-            <span>周末班次</span>
+            <span>周末排班</span>
           </el-menu-item>
           <el-menu-item index="basic">
             <el-icon><Setting /></el-icon>

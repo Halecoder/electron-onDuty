@@ -27,14 +27,15 @@ export interface Schedule {
 export interface WeekendShift {
   id: number
   name: string
-  leaderIds: string  // JSON 数组 - 组长人员ID
+  leaderIds: string // JSON 数组 - 组长人员ID
   pioneerIds: string // JSON 数组 - 加班先锋人员ID
 }
 
 export interface BasicData {
   id: number
-  baseWeek: string  // 基准周 YYYY-MM-DD
-  weekendRotationIndex: number  // 周末轮换索引
+  baseWeek: string // 基准周 YYYY-MM-DD
+  weekendRotationIndex_1: number // 周末轮换索引1
+  weekendRotationIndex_2: number // 周末轮换索引2
 }
 
 class DatabaseManager {
@@ -49,11 +50,13 @@ class DatabaseManager {
 
   private initDefaultData() {
     // 初始化默认周末班次
-    const existingWeekendShifts = this.db.prepare('SELECT COUNT(*) as count FROM weekend_shifts').get() as { count: number }
+    const existingWeekendShifts = this.db
+      .prepare('SELECT COUNT(*) as count FROM weekend_shifts')
+      .get() as { count: number }
     if (existingWeekendShifts.count === 0) {
-      this.db.prepare(
-        'INSERT INTO weekend_shifts (name, leaderIds, pioneerIds) VALUES (?, ?, ?)'
-      ).run('周末班次', '[]', '[]')
+      this.db
+        .prepare('INSERT INTO weekend_shifts (name, leaderIds, pioneerIds) VALUES (?, ?, ?)')
+        .run('周末班次', '[]', '[]')
     }
   }
 
@@ -97,27 +100,24 @@ class DatabaseManager {
     leaderIds TEXT NOT NULL,
     pioneerIds TEXT NOT NULL
   )
-`)
+  `)
 
-    // 创建基础数据表
-    this.db.exec(`
+  // 更新基础数据表
+  this.db.exec(`
   CREATE TABLE IF NOT EXISTS basic_data (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     baseWeek TEXT NOT NULL,
-    weekendRotationIndex INTEGER NOT NULL DEFAULT 0
+    weekendRotationIndex_1 INTEGER NOT NULL DEFAULT 0,
+    weekendRotationIndex_2 INTEGER NOT NULL DEFAULT 0
   )
-`)
+  `)
 
-    // 初始化基础数据
-    const existingData = this.db.prepare('SELECT COUNT(*) as count FROM basic_data').get() as {
-      count: number
-    }
-    if (existingData.count === 0) {
-      this.db
-        .prepare('INSERT INTO basic_data (id, baseWeek, weekendRotationIndex) VALUES (1, ?, 0)')
-        .run('2024-01-01')
-    }
+  // 更新初始化数据
+  const existingData = this.db.prepare('SELECT COUNT(*) as count FROM basic_data').get() as { count: number }
+  if (existingData.count === 0) {
+    this.db.prepare('INSERT INTO basic_data (id, baseWeek, weekendRotationIndex_1, weekendRotationIndex_2) VALUES (1, ?, 0, 0)').run('2024-01-01')
   }
+}
 
   // 人员管理
   getAllPersons(): Person[] {
@@ -167,28 +167,27 @@ class DatabaseManager {
     this.db.prepare('DELETE FROM shifts WHERE id = ?').run(id)
   }
 
-
   // 周末班次管理
-getAllWeekendShifts(): WeekendShift[] {
-  return this.db.prepare('SELECT * FROM weekend_shifts').all() as WeekendShift[]
-}
+  getAllWeekendShifts(): WeekendShift[] {
+    return this.db.prepare('SELECT * FROM weekend_shifts').all() as WeekendShift[]
+  }
 
-updateWeekendShift(shift: WeekendShift): void {
-  this.db.prepare(
-    'UPDATE weekend_shifts SET name = ?, leaderIds = ?, pioneerIds = ? WHERE id = ?'
-  ).run(shift.name, shift.leaderIds, shift.pioneerIds, shift.id)
-}
+  updateWeekendShift(shift: WeekendShift): void {
+    this.db
+      .prepare('UPDATE weekend_shifts SET name = ?, leaderIds = ?, pioneerIds = ? WHERE id = ?')
+      .run(shift.name, shift.leaderIds, shift.pioneerIds, shift.id)
+  }
 
-// 基础数据管理
-getBasicData(): BasicData {
-  return this.db.prepare('SELECT * FROM basic_data WHERE id = 1').get() as BasicData
-}
+  // 基础数据管理
+  getBasicData(): BasicData {
+    return this.db.prepare('SELECT * FROM basic_data WHERE id = 1').get() as BasicData
+  }
 
-updateBasicData(data: BasicData): void {
-  this.db.prepare(
-    'UPDATE basic_data SET baseWeek = ?, weekendRotationIndex = ? WHERE id = 1'
-  ).run(data.baseWeek, data.weekendRotationIndex)
-}
+  updateBasicData(data: BasicData): void {
+    this.db
+      .prepare('UPDATE basic_data SET baseWeek = ?, weekendRotationIndex_1 = ?, weekendRotationIndex_2 = ? WHERE id = 1')
+      .run(data.baseWeek, data.weekendRotationIndex_1, data.weekendRotationIndex_2)
+  }
 
   // 排班记录管理
   getSchedule(weekStart: string): Schedule | undefined {

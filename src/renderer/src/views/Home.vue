@@ -1,56 +1,35 @@
 <template>
   <div class="home-container">
     <div class="header">
-      <el-button
-        @click="gotoPreviousWeek"
-        :icon="ArrowLeft"
-      >
-        上一周
-      </el-button>
+      <el-button @click="gotoPreviousWeek" :icon="ArrowLeft"> 上一周 </el-button>
 
       <div class="week-title">
         <h2>{{ formatDate(currentWeekStart) }} 值班安排</h2>
         <p class="shift-name" v-if="currentShift">班次：{{ currentShift.name }}</p>
       </div>
 
-      <el-button
-        @click="gotoNextWeek"
-        :icon="ArrowRight"
-      >
-        下一周
-      </el-button>
+      <el-button @click="gotoNextWeek" :icon="ArrowRight"> 下一周 </el-button>
 
-      <el-button
-        type="primary"
-        @click="gotoSettings"
-        :icon="Setting"
-        class="settings-btn"
-      >
+      <el-button type="primary" @click="gotoSettings" :icon="Setting" class="settings-btn">
         设置
       </el-button>
     </div>
 
-    <div class="table-container">
-      <!-- 工作日排班表 -->
-      <ScheduleTable
-        v-if="schedule && persons.length > 0"
-        :persons="persons"
-        :schedule="schedule"
-        :week-start="currentWeekStart"
-      />
+    <div class="container">
+      <div class="table-container">
+        <!-- 使用统一的表格组件 -->
+        <ScheduleTable
+          v-if="schedule && weekendSchedule && persons.length > 0"
+          :persons="persons"
+          :weekday-schedule="schedule"
+          :weekend-schedule="weekendSchedule"
+          :week-start="currentWeekStart"
+          @rebuild="handleRebuildSchedule"
+          @refresh="loadSchedule"
+        />
 
-      <!-- 周末排班表 -->
-      <WeekendTable
-        v-if="weekendSchedule && weekendShift"
-        :persons="persons"
-        :schedule="weekendSchedule"
-        :week-start="currentWeekStart"
-      />
-
-      <el-empty
-        v-if="(!schedule || persons.length === 0) && (!weekendSchedule)"
-        description="请先在设置页面配置人员和班次信息"
-      />
+        <el-empty v-else description="请先在右上角设置页面配置人员和班次信息" />
+      </div>
     </div>
   </div>
 </template>
@@ -60,7 +39,6 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, ArrowRight, Setting } from '@element-plus/icons-vue'
 import ScheduleTable from '../components/ScheduleTable.vue'
-import WeekendTable from '../components/WeekendTable.vue'
 import { Person, Shift, WeekSchedule, WeekendShift, BasicData, WeekendSchedule } from '../types'
 import {
   getWeekStart,
@@ -94,7 +72,7 @@ async function loadData() {
   const basicDataData = await window.api.getBasicData()
 
   persons.value = personsData
-  shifts.value = shiftsData.map(s => ({
+  shifts.value = shiftsData.map((s) => ({
     ...s,
     mondayPersonIds: JSON.parse(s.mondayPersonIds),
     fridayPersonIds: JSON.parse(s.fridayPersonIds)
@@ -112,6 +90,15 @@ async function loadData() {
   basicData.value = basicDataData
 }
 
+// 添加重建处理函数
+async function handleRebuildSchedule() {
+  try {
+    await window.api.clearAllSchedules()
+  } catch (error) {
+    throw new Error('重建失败')
+  }
+}
+
 async function loadSchedule() {
   // 加载工作日排班（现有逻辑保持不变）
   if (shifts.value.length === 0) {
@@ -122,7 +109,7 @@ async function loadSchedule() {
 
     if (savedSchedule) {
       schedule.value = JSON.parse(savedSchedule.scheduleData)
-      currentShift.value = shifts.value.find(s => s.id === savedSchedule.shiftId) || null
+      currentShift.value = shifts.value.find((s) => s.id === savedSchedule.shiftId) || null
     } else {
       const shiftIndex = getShiftIndexForWeek(currentWeekStart.value)
       currentShift.value = shifts.value[shiftIndex]
@@ -152,7 +139,9 @@ async function loadSchedule() {
 function getShiftIndexForWeek(weekStart: string): number {
   const baseDate = new Date('2024-01-01')
   const currentDate = new Date(weekStart)
-  const weeksDiff = Math.floor((currentDate.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000))
+  const weeksDiff = Math.floor(
+    (currentDate.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
+  )
 
   return weeksDiff % shifts.value.length
 }
@@ -181,6 +170,12 @@ function gotoSettings() {
   background: #f5f5f5;
 }
 
+.container {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -188,7 +183,6 @@ function gotoSettings() {
   gap: 20px;
   padding: 20px;
   background: white;
-  margin-bottom: 20px;
   position: relative;
 }
 

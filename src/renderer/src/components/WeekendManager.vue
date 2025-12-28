@@ -1,7 +1,7 @@
 <template>
   <div class="weekend-manager">
     <div class="panel-header">
-      <h3>周末班次配置</h3>
+      <h3>周末排班配置</h3>
     </div>
 
     <el-card class="weekend-card">
@@ -48,12 +48,27 @@
 
       <div class="preview-section">
         <h4>排班规则预览</h4>
-        <p>周六值班将按照以下顺序轮换：</p>
+        <p>周末值班规则1：</p>
         <div class="rotation-preview">
           <el-tag v-for="person in getRotationPreview()" :key="person.id">
             {{ person.name }}
           </el-tag>
         </div>
+        <p class="preview-tip">规则1将从以上特殊人员中轮流选择一位值班</p>
+      </div>
+
+      <div class="rotation-group">
+        <p>周末值班规则2：</p>
+        <div class="rotation-preview">
+          <el-tag
+            v-for="person in getRegularPersons(props.persons, props.weekendShift)"
+            :key="person.id"
+            type="info"
+          >
+            {{ person.name }}
+          </el-tag>
+        </div>
+        <p class="preview-tip">规则2将从以上普通人员中轮流选择一位值班</p>
       </div>
     </el-card>
 
@@ -206,41 +221,16 @@ function getRotationPreview(): Person[] {
   return rotation
 }
 
+// 新增：获取普通人员（排除组长和加班先锋）
+function getRegularPersons(persons: Person[], weekendShift: WeekendShift): Person[] {
+  if (!weekendShift) return persons
 
-// function getRotationPreview(): Person[] {
-//   if (!props.weekendShift) return []
+  const leaderIds = new Set(weekendShift.leaderIds)
+  const pioneerIds = new Set(weekendShift.pioneerIds)
+  const excludedIds = new Set([...leaderIds, ...pioneerIds])
 
-//   const rotation: Person[] = []
-//   const leaders = props.weekendShift.leaderIds
-//     .map((id) => props.persons.find((p) => p.id === id))
-//     .filter(Boolean) as Person[]
-
-//   const pioneers = props.weekendShift.pioneerIds
-//     .map((id) => props.persons.find((p) => p.id === id))
-//     .filter(Boolean) as Person[]
-
-//   const pioneerQueue: Person[] = [...pioneers] // 用于轮流取先锋
-//   const pendingPioneers: Person[] = [] // 存储已出现一次的先锋，等待第二次插入
-
-//   for (let i = 0; i < leaders.length; i++) {
-//     rotation.push(leaders[i])
-
-//     // 插入一个先锋（第一次出现）
-//     if (pioneerQueue.length > 0) {
-//       const pioneer = pioneerQueue.shift()!
-//       rotation.push(pioneer)
-//       pendingPioneers.push(pioneer) // 标记为已出现一次
-//     }
-
-//     // 插入该先锋的第二次出现（交替）
-//     if (pendingPioneers.length > 0) {
-//       const pioneer = pendingPioneers.shift()!
-//       rotation.push(pioneer)
-//     }
-//   }
-
-//   return rotation
-// }
+  return persons.filter((person) => !excludedIds.has(person.id))
+}
 </script>
 
 <style scoped>
@@ -312,5 +302,25 @@ function getRotationPreview(): Person[] {
   gap: 10px;
   max-height: 300px;
   overflow-y: auto;
+}
+
+.rotation-group {
+  margin-top: 25px;
+}
+
+.rotation-group p {
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.rotation-group:last-child {
+  margin-bottom: 0;
+}
+
+.preview-tip {
+  font-size: 12px;
+  color: #999;
+  margin-top: 10px;
+  margin-bottom: 0;
 }
 </style>

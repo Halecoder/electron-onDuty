@@ -32,7 +32,7 @@ interface WeekendShift {
 interface BasicData {
   id: number
   baseWeek: string
-  weekendRotationIndex: number
+  weekendRotationIndex_1: number
 }
 
 interface API {
