@@ -11,7 +11,7 @@
         </div>
       </template>
 
-      <el-form :model="form" label-width="120px">
+      <el-form :model="form" label-width="200px">
         <el-form-item label="基准周">
           <el-date-picker
             v-model="form.baseWeek"
@@ -34,12 +34,7 @@
           <div class="form-tip">周末值班轮换的当前位置，从组长以及加班先锋选择</div>
         </el-form-item>
 
-        <el-form-item>
-          <el-button type="primary" @click="saveBasicData">保存配置</el-button>
-          <el-button @click="resetRotationIndex">重置轮换索引</el-button>
-        </el-form-item>
-
-        <el-form-item label="周末其他人员索引">
+        <el-form-item label="周末排班其他人员索引">
           <el-input-number
             v-model="form.weekendRotationIndex_2"
             :min="0"
@@ -49,10 +44,12 @@
           <div class="form-tip">周末值班轮换的当前位置，从普通人员中选择</div>
         </el-form-item>
 
-        <el-form-item>
-          <el-button type="primary" @click="saveBasicData">保存配置</el-button>
-          <el-button @click="resetRotationIndex">重置轮换索引</el-button>
-        </el-form-item>
+        <div class="options">
+          <el-form-item>
+            <el-button type="primary" @click="saveBasicData">保存配置</el-button>
+            <el-button @click="resetRotationIndex">重置轮换索引</el-button>
+          </el-form-item>
+        </div>
       </el-form>
     </el-card>
 
@@ -196,6 +193,7 @@ async function resetRotationIndex() {
   font-size: 12px;
   color: #999;
   margin-top: 5px;
+  margin-left: 20px;
 }
 
 .stats-grid {
@@ -228,4 +226,9 @@ async function resetRotationIndex() {
   font-weight: bold;
   color: #409eff;
 }
+
+.options {
+  margin-top: 80px;
+}
+
 </style>

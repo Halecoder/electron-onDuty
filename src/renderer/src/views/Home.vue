@@ -137,7 +137,8 @@ async function loadSchedule() {
 }
 
 function getShiftIndexForWeek(weekStart: string): number {
-  const baseDate = new Date('2024-01-01')
+  loadData()
+  const baseDate = new Date(basicData.value.baseWeek)
   const currentDate = new Date(weekStart)
   const weeksDiff = Math.floor(
     (currentDate.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
@@ -191,7 +192,7 @@ function gotoSettings() {
 }
 
 .week-title h2 {
-  font-size: 24px;
+  font-size: 22px;
   color: #333;
   margin-bottom: 5px;
 }

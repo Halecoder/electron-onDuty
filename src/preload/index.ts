@@ -26,7 +26,7 @@ const api = {
 
   // 新增基础数据 API
   getBasicData: () => ipcRenderer.invoke('get-basic-data'),
-  updateBasicData: (data) => ipcRenderer.invoke('update-basic-data'),
+  updateBasicData: (data) => ipcRenderer.invoke('update-basic-data', data),
 
   // 清除排班记录 API
   clearSchedulesByShiftId: (shiftId) => ipcRenderer.invoke('clear-schedules-by-shift-id', shiftId),

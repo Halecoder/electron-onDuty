@@ -27,7 +27,7 @@
     </el-dialog>
 
     <el-table :data="tableData" border style="width: 100%" :cell-style="getCellStyle">
-      <el-table-column label="姓名（邮箱）" width="300" fixed>
+      <el-table-column label="姓名（邮箱）" min-width="300" fixed>
         <template #default="scope"> {{ scope.row.name }}（{{ scope.row.email }}） </template>
       </el-table-column>
 
@@ -36,7 +36,7 @@
         :key="day"
         :label="day"
         align="center"
-        width="120"
+        min-width="160"
       >
         <template #default="scope">
           <span v-if="scope.row[`day${index}`]">✓</span>
@@ -149,16 +149,19 @@ function getCellStyle({ row, column, rowIndex, columnIndex }) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  justify-content: center;
 }
 
 .table-title {
-  font-size: 18px;
+  font-size: 30px;
   color: #333;
   font-weight: bold;
 }
 
 .rebuild-btn {
   font-size: 14px;
+  position: absolute;
+  right: 40px;
 }
 :deep(.el-table) {
   font-size: 14px;
