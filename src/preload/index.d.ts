@@ -35,6 +35,19 @@ interface BasicData {
   weekendRotationIndex_1: number
 }
 
+export interface EmailConfig {
+  id: number
+  smtpHost: string
+  smtpPort: number
+  smtpSecure: boolean
+  smtpUser: string
+  smtpPass: string
+  emailSuffix: string
+  cronExpression: string
+  enabled: boolean
+  ccEmails: string
+}
+
 interface API {
   // 人员管理
   getAllPersons: () => Promise<Person[]>
@@ -74,7 +87,7 @@ interface API {
 
   // 自启动相关类型
   setAutoStart: (enable: boolean) => Promise<void>
-  getAutoStartStatus: () => Promise<boolean>  
+  getAutoStartStatus: () => Promise<boolean>
 }
 
 declare global {

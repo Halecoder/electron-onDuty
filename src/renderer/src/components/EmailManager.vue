@@ -19,7 +19,7 @@
         </el-form-item>
 
         <el-form-item label="启用 SSL">
-          <el-switch v-model="form.smtpSecure" />
+          <el-switch v-model="form.smtpSecure"  />
         </el-form-item>
 
         <el-form-item label="发送邮箱" required>
@@ -74,7 +74,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { EmailConfig } from '../types'
 
 const emit = defineEmits<{
   refresh: []
@@ -99,7 +98,11 @@ onMounted(async () => {
 async function loadConfig() {
   try {
     const config = await window.api.getEmailConfig()
-    Object.assign(form, config)
+    Object.assign(form, {
+      ...config,
+      smtpSecure: Boolean(config.smtpSecure),
+      enabled: Boolean(config.enabled)
+    })
   } catch (error) {
     ElMessage.error('加载配置失败')
   }
@@ -107,7 +110,12 @@ async function loadConfig() {
 
 async function saveConfig() {
   try {
-    await window.api.updateEmailConfig(form)
+    const plainConfig = {
+      ...form,
+      smtpSecure: form.smtpSecure ? 1 : 0,
+      enabled: form.enabled ? 1 : 0
+    }
+    await window.api.updateEmailConfig(plainConfig)
     ElMessage.success('配置保存成功')
     emit('refresh')
   } catch (error) {

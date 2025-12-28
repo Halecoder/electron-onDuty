@@ -25,6 +25,7 @@ export class EmailService {
 
   async sendTestEmail(): Promise<void> {
     const config = this.db.getEmailConfig() // Get config from database
+    await this.initializeTransporter(config)
 
     const mailOptions = {
       from: `${config.smtpUser}${config.emailSuffix}`,
