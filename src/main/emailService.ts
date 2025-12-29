@@ -74,7 +74,7 @@ export class EmailService {
     )
 
     const toEmails = persons.map((p) => `${p.email}${config.emailSuffix}`).join(', ')
-    // const toEmails = '602111@gree.com.cn'
+    // const toEmails = 'xx@xx'
     const ccEmails = config.ccEmails
       ? config.ccEmails
           .split(',')

@@ -20,6 +20,9 @@ An Electron application with Vue and TypeScript
 
 - [ ] 接入邮件系统以及Cron定时任务,每周一下午邮件发送排班表,也可直接手动触发发送排班表
 - [ ] 可手动更改当前已生成的排班表
+- [ ] 重建数据库增加只重建本周的功能
+- [ ] 考虑假日值班情况
+
 
 ## Recommended IDE Setup
 
