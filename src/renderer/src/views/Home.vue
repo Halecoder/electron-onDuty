@@ -169,14 +169,26 @@ async function loadSchedule() {
     }
   }
 
-  // 加载周末排班
+  // 修改周末排班加载逻辑
   if (weekendShift.value && basicData.value) {
-    weekendSchedule.value = generateWeekendSchedule(
-      persons.value,
-      weekendShift.value,
-      basicData.value,
-      currentWeekStart.value
-    )
+    // 先尝试加载手动保存的周末排班
+    const savedWeekendSchedule = await window.api.getWeekendSchedule(currentWeekStart.value)
+
+    if (savedWeekendSchedule) {
+      // 使用手动保存的数据
+      weekendSchedule.value = {
+        saturday: JSON.parse(savedWeekendSchedule.saturday),
+        sunday: JSON.parse(savedWeekendSchedule.sunday)
+      }
+    } else {
+      // 没有手动保存的数据，使用自动生成的
+      weekendSchedule.value = generateWeekendSchedule(
+        persons.value,
+        weekendShift.value,
+        basicData.value,
+        currentWeekStart.value
+      )
+    }
   } else {
     weekendSchedule.value = null
   }

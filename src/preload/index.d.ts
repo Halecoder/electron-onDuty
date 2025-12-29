@@ -88,6 +88,9 @@ interface API {
   // 自启动相关类型
   setAutoStart: (enable: boolean) => Promise<void>
   getAutoStartStatus: () => Promise<boolean>
+
+  getWeekendSchedule: (weekStart: string) => Promise<{ saturday: string; sunday: string } | null>
+  saveWeekendSchedule: (weekendSchedule: { weekStart: string, saturday: string, sunday: string }) => Promise<void>
 }
 
 declare global {

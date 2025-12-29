@@ -42,10 +42,13 @@ const api = {
   // 自启动相关 API
   setAutoStart: (enable) => ipcRenderer.invoke('set-auto-start', enable),
   getAutoStartStatus: () => ipcRenderer.invoke('get-auto-start-status'),
-  
+
   clearSchedulesBeforeWeek: (weekStart) => ipcRenderer.invoke('clear-schedules-before-week', weekStart),
   clearSchedulesFromWeek: (weekStart) => ipcRenderer.invoke('clear-schedules-from-week', weekStart),
-  updateSchedule: (weekStart, scheduleData) => ipcRenderer.invoke('update-schedule', weekStart, scheduleData)
+  updateSchedule: (weekStart, scheduleData) => ipcRenderer.invoke('update-schedule', weekStart, scheduleData),
+
+  getWeekendSchedule: (weekStart) => ipcRenderer.invoke('get-weekend-schedule', weekStart),
+  saveWeekendSchedule: (weekendSchedule) => ipcRenderer.invoke('save-weekend-schedule', weekendSchedule)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

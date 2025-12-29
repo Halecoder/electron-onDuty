@@ -59,12 +59,20 @@ export class EmailService {
     const weekendShift = this.db.getAllWeekendShifts()[0]
     const basicData = this.db.getBasicData()
 
-    const weekendSchedule = this.generateWeekendSchedule(
-      persons,
-      weekendShift,
-      basicData,
-      weekStart
-    )
+    // 修改：优先使用手动保存的周末排班数据
+    let weekendSchedule
+    const savedWeekendSchedule = this.db.getWeekendSchedule(weekStart)
+
+    if (savedWeekendSchedule) {
+      // 使用手动保存的数据
+      weekendSchedule = {
+        saturday: JSON.parse(savedWeekendSchedule.saturday),
+        sunday: JSON.parse(savedWeekendSchedule.sunday)
+      }
+    } else {
+      // 没有手动保存的数据，使用自动生成的
+      weekendSchedule = this.generateWeekendSchedule(persons, weekendShift, basicData, weekStart)
+    }
 
     const emailContent = this.generateEmailContent(
       persons,
@@ -73,8 +81,8 @@ export class EmailService {
       weekStart
     )
 
-    // const toEmails = persons.map((p) => `${p.email}${config.emailSuffix}`).join(', ')
-    const toEmails = '602111@gree.com.cn'
+    const toEmails = persons.map((p) => `${p.email}${config.emailSuffix}`).join(', ')
+    // const toEmails = '602111@gree.com.cn'
     const ccEmails = config.ccEmails
       ? config.ccEmails
           .split(',')

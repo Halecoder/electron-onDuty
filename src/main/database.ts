@@ -115,8 +115,8 @@ export class DatabaseManager {
   )
   `)
 
-  // 更新基础数据表
-  this.db.exec(`
+    // 更新基础数据表
+    this.db.exec(`
   CREATE TABLE IF NOT EXISTS basic_data (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     baseWeek TEXT NOT NULL,
@@ -125,8 +125,8 @@ export class DatabaseManager {
   )
   `)
 
-   // 创建邮件配置表
-   this.db.exec(`
+    // 创建邮件配置表
+    this.db.exec(`
    CREATE TABLE IF NOT EXISTS email_config (
      id INTEGER PRIMARY KEY CHECK (id = 1),
      smtpHost TEXT NOT NULL,
@@ -141,20 +141,39 @@ export class DatabaseManager {
    )
  `)
 
-  // 更新初始化数据
-  const existingData = this.db.prepare('SELECT COUNT(*) as count FROM basic_data').get() as { count: number }
-  if (existingData.count === 0) {
-    this.db.prepare('INSERT INTO basic_data (id, baseWeek, weekendRotationIndex_1, weekendRotationIndex_2) VALUES (1, ?, 0, 0)').run('2024-01-01')
-  }
+    //创建周末排班配置表
+    this.db.exec(`CREATE TABLE IF NOT EXISTS weekend_schedules (
+  weekStart TEXT PRIMARY KEY,
+  saturday TEXT NOT NULL,
+  sunday TEXT NOT NULL
+)`)
 
-  const existingConfig = this.db.prepare('SELECT COUNT(*) as count FROM email_config').get() as { count: number }
-  if (existingConfig.count === 0) {
-    this.db.prepare(`
+    // 更新初始化数据
+    const existingData = this.db.prepare('SELECT COUNT(*) as count FROM basic_data').get() as {
+      count: number
+    }
+    if (existingData.count === 0) {
+      this.db
+        .prepare(
+          'INSERT INTO basic_data (id, baseWeek, weekendRotationIndex_1, weekendRotationIndex_2) VALUES (1, ?, 0, 0)'
+        )
+        .run('2024-01-01')
+    }
+
+    const existingConfig = this.db.prepare('SELECT COUNT(*) as count FROM email_config').get() as {
+      count: number
+    }
+    if (existingConfig.count === 0) {
+      this.db
+        .prepare(
+          `
       INSERT INTO email_config (id, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, emailSuffix, cronExpression, enabled, ccEmails)
       VALUES (1, '', 587, 0, '', '', '@company.com', '0 14 * * 1', 0, '')
-    `).run()
+    `
+        )
+        .run()
+    }
   }
-}
 
   // 人员管理
   getAllPersons(): Person[] {
@@ -222,7 +241,9 @@ export class DatabaseManager {
 
   updateBasicData(data: BasicData): void {
     this.db
-      .prepare('UPDATE basic_data SET baseWeek = ?, weekendRotationIndex_1 = ?, weekendRotationIndex_2 = ? WHERE id = 1')
+      .prepare(
+        'UPDATE basic_data SET baseWeek = ?, weekendRotationIndex_1 = ?, weekendRotationIndex_2 = ? WHERE id = 1'
+      )
       .run(data.baseWeek, data.weekendRotationIndex_1, data.weekendRotationIndex_2)
   }
 
@@ -279,16 +300,56 @@ export class DatabaseManager {
   }
 
   updateEmailConfig(config: EmailConfig): void {
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       UPDATE email_config SET
       smtpHost = ?, smtpPort = ?, smtpSecure = ?, smtpUser = ?,
       smtpPass = ?, emailSuffix = ?, cronExpression = ?,
       enabled = ?, ccEmails = ? WHERE id = 1
-    `).run(
-      config.smtpHost, config.smtpPort, config.smtpSecure ? 1 : 0,
-      config.smtpUser, config.smtpPass, config.emailSuffix,
-      config.cronExpression, config.enabled ? 1 : 0, config.ccEmails
-    )
+    `
+      )
+      .run(
+        config.smtpHost,
+        config.smtpPort,
+        config.smtpSecure ? 1 : 0,
+        config.smtpUser,
+        config.smtpPass,
+        config.emailSuffix,
+        config.cronExpression,
+        config.enabled ? 1 : 0,
+        config.ccEmails
+      )
+  }
+
+  // 保存周末排班数据
+  saveWeekendSchedule(weekendSchedule: {
+    weekStart: string
+    saturday: string
+    sunday: string
+  }): void {
+    const existing = this.db
+      .prepare('SELECT weekStart FROM weekend_schedules WHERE weekStart = ?')
+      .get(weekendSchedule.weekStart)
+
+    if (existing) {
+      this.db
+        .prepare('UPDATE weekend_schedules SET saturday = ?, sunday = ? WHERE weekStart = ?')
+        .run(weekendSchedule.saturday, weekendSchedule.sunday, weekendSchedule.weekStart)
+    } else {
+      this.db
+        .prepare('INSERT INTO weekend_schedules (weekStart, saturday, sunday) VALUES (?, ?, ?)')
+        .run(weekendSchedule.weekStart, weekendSchedule.saturday, weekendSchedule.sunday)
+    }
+  }
+
+  // 获取周末排班数据
+  getWeekendSchedule(weekStart: string): { saturday: string; sunday: string } | null {
+    const result = this.db
+      .prepare('SELECT saturday, sunday FROM weekend_schedules WHERE weekStart = ?')
+      .get(weekStart) as { saturday: string; sunday: string } | undefined
+
+    return result || null
   }
 }
 

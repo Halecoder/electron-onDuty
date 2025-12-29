@@ -220,11 +220,42 @@ async function handleCellClick(row: any, column: any, cell: any, event: Event) {
       emit('refresh')
     }
     // 周末（周六、周日）
-    else {
-      const isWeekend = dayIndex === 5 || dayIndex === 6
-      if (isWeekend) {
-        ElMessage.warning('周末排班由系统自动生成，请通过修改基准索引来调整')
+    else if (dayIndex === 5 || dayIndex === 6) {
+      const isSaturday = dayIndex === 5
+      const newWeekendSchedule = { ...props.weekendSchedule }
+
+      if (currentValue) {
+        // 取消周末值班
+        if (isSaturday) {
+          newWeekendSchedule.saturday = newWeekendSchedule.saturday.filter(id => id !== person.id)
+        } else {
+          newWeekendSchedule.sunday = newWeekendSchedule.sunday.filter(id => id !== person.id)
+        }
+
+        ElMessage.success('已取消周末值班')
+      } else {
+        // 添加周末值班（手动指定）
+        if (isSaturday) {
+          if (!newWeekendSchedule.saturday.includes(person.id)) {
+            newWeekendSchedule.saturday.push(person.id)
+          }
+        } else {
+          if (!newWeekendSchedule.sunday.includes(person.id)) {
+            newWeekendSchedule.sunday.push(person.id)
+          }
+        }
+
+        ElMessage.success('已添加周末值班')
       }
+
+      // 保存周末排班修改到数据库
+      await window.api.saveWeekendSchedule({
+        weekStart: props.weekStart,
+        saturday: JSON.stringify(newWeekendSchedule.saturday),
+        sunday: JSON.stringify(newWeekendSchedule.sunday)
+      })
+
+      emit('refresh')
     }
   }
 }
