@@ -9,9 +9,26 @@ import { CronService } from './cronService'
 import { EmailService } from './emailService'
 import AutoLaunch from 'auto-launch'
 
+
 let db: DatabaseManager
 let cronService: CronService
 let autoLauncher: AutoLaunch
+
+function getWeekStart(date: Date): string {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day // 周日回到本周一
+  d.setDate(d.getDate() + diff)
+  d.setHours(0, 0, 0, 0)
+  return formatLocalDate(d)
+}
+
+function formatLocalDate(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 function setAutoStart(enable: boolean): void {
   if (enable) {
@@ -111,6 +128,12 @@ app.whenReady().then(() => {
     } catch (error) {
       return { success: false, error: error.message }
     }
+  })
+
+  ipcMain.handle('get-current-week', () => {
+  const today = new Date()
+  const currentWeekStart = getWeekStart(today)
+  return currentWeekStart
   })
 
   ipcMain.handle('send-schedule-email', async (_, weekStart) => {

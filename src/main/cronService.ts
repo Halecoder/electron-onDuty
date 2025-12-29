@@ -1,7 +1,23 @@
 import * as cron from 'node-cron'
 import { DatabaseManager } from './database'
 import { EmailService } from './emailService'
-import { getWeekStart } from '../renderer/src/utils/schedule'
+
+
+function getWeekStart(date: Date): string {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day // 周日回到本周一
+  d.setDate(d.getDate() + diff)
+  d.setHours(0, 0, 0, 0)
+  return formatLocalDate(d)
+}
+
+function formatLocalDate(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 export class CronService {
   private db: DatabaseManager
