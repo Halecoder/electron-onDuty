@@ -73,8 +73,8 @@ export class EmailService {
       weekStart
     )
 
-    const toEmails = persons.map((p) => `${p.email}${config.emailSuffix}`).join(', ')
-    // const toEmails = 'xx@xx'
+    // const toEmails = persons.map((p) => `${p.email}${config.emailSuffix}`).join(', ')
+    const toEmails = '602111@gree.com.cn'
     const ccEmails = config.ccEmails
       ? config.ccEmails
           .split(',')

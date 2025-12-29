@@ -75,4 +75,16 @@ export function setupIpcHandlers() {
   ipcMain.handle('update-basic-data', (_, data) => {
     db.updateBasicData(data)
   })
+
+   ipcMain.handle('clear-schedules-before-week', (_, weekStart) => {
+    db.clearSchedulesBeforeWeek(weekStart)
+  })
+
+  ipcMain.handle('clear-schedules-from-week', (_, weekStart) => {
+    db.clearSchedulesFromWeek(weekStart)
+  })
+
+  ipcMain.handle('update-schedule', (_, weekStart, scheduleData) => {
+    db.updateSchedule(weekStart, scheduleData)
+  })
 }

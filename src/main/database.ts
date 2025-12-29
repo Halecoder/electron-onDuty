@@ -257,6 +257,23 @@ export class DatabaseManager {
     this.db.close()
   }
 
+  // 清除本周之前的排班数据
+  clearSchedulesBeforeWeek(weekStart: string): void {
+    this.db.prepare('DELETE FROM schedules WHERE weekStart < ?').run(weekStart)
+  }
+
+  // 清除本周及以后的排班数据
+  clearSchedulesFromWeek(weekStart: string): void {
+    this.db.prepare('DELETE FROM schedules WHERE weekStart >= ?').run(weekStart)
+  }
+
+  // 更新单个排班数据
+  updateSchedule(weekStart: string, scheduleData: string): void {
+    this.db
+      .prepare('UPDATE schedules SET scheduleData = ? WHERE weekStart = ?')
+      .run(scheduleData, weekStart)
+  }
+
   getEmailConfig(): EmailConfig {
     return this.db.prepare('SELECT * FROM email_config WHERE id = 1').get() as EmailConfig
   }

@@ -28,13 +28,16 @@
     <div class="container">
       <div class="table-container">
         <!-- 使用统一的表格组件 -->
-        <ScheduleTable
+         <ScheduleTable
           v-if="schedule && weekendSchedule && persons.length > 0"
           :persons="persons"
           :weekday-schedule="schedule"
           :weekend-schedule="weekendSchedule"
           :week-start="currentWeekStart"
-          @rebuild="handleRebuildSchedule"
+          :weekend-shift="weekendShift"
+          :basic-data="basicData"
+          @rebuild-before="handleRebuildScheduleBefore"
+          @rebuild-from="handleRebuildScheduleFrom"
           @refresh="loadSchedule"
         />
 
@@ -109,6 +112,24 @@ async function handleRebuildSchedule() {
     await window.api.clearAllSchedules()
   } catch (error) {
     throw new Error('重建失败')
+  }
+}
+
+// 重建本周前的历史数据
+async function handleRebuildScheduleBefore() {
+  try {
+    await window.api.clearSchedulesBeforeWeek(currentWeekStart.value)
+  } catch (error) {
+    throw new Error('重建失败')
+  }
+}
+
+// 重置本周及以后的数据
+async function handleRebuildScheduleFrom() {
+  try {
+    await window.api.clearSchedulesFromWeek(currentWeekStart.value)
+  } catch (error) {
+    throw new Error('重置失败')
   }
 }
 
