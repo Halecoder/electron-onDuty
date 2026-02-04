@@ -9,7 +9,11 @@
     <div class="settings-content">
       <!-- 左侧固定菜单栏 -->
       <div class="left-sidebar">
-        <el-menu :default-active="activeMenu" @select="handleMenuSelect" class="settings-menu">
+        <el-menu
+          :default-active="activeMenu"
+          @select="handleMenuSelect"
+          class="settings-menu"
+        >
           <el-menu-item index="persons">
             <el-icon><User /></el-icon>
             <span>人员信息</span>
@@ -40,7 +44,11 @@
 
       <!-- 右侧内容区域 -->
       <div class="content-area">
-        <PersonManager v-if="activeMenu === 'persons'" :persons="persons" @refresh="loadPersons" />
+        <PersonManager
+          v-if="activeMenu === 'persons'"
+          :persons="persons"
+          @refresh="loadPersons"
+        />
 
         <ShiftManager
           v-if="activeMenu === 'shifts'"
@@ -57,17 +65,19 @@
         />
 
         <BasicDataManager
-          v-if="activeMenu === 'basic' && basicData"
+          v-if="activeMenu === 'basic'"
           :basic-data="basicData"
-          :persons="persons"
-          :shifts="shifts"
-          :weekend-shift="weekendShift"
           @refresh="loadBasicData"
         />
 
-        <EmailManager v-if="activeMenu === 'email'" @refresh="loadEmailConfig" />
+        <EmailManager
+          v-if="activeMenu === 'email'"
+          @refresh="loadEmailConfig"
+        />
 
-        <AutoStartManager v-if="activeMenu === 'autostart'" />
+        <AutoStartManager
+          v-if="activeMenu === 'autostart'"
+        />
       </div>
     </div>
   </div>
@@ -98,7 +108,12 @@ onMounted(async () => {
 })
 
 async function loadAllData() {
-  await Promise.all([loadPersons(), loadShifts(), loadWeekendShift(), loadBasicData()])
+  await Promise.all([
+    loadPersons(),
+    loadShifts(),
+    loadWeekendShift(),
+    loadBasicData()
+  ])
 }
 
 async function loadPersons() {
@@ -107,7 +122,7 @@ async function loadPersons() {
 
 async function loadShifts() {
   const shiftsData = await window.api.getAllShifts()
-  shifts.value = shiftsData.map((s) => ({
+  shifts.value = shiftsData.map(s => ({
     ...s,
     mondayPersonIds: JSON.parse(s.mondayPersonIds),
     fridayPersonIds: JSON.parse(s.fridayPersonIds)

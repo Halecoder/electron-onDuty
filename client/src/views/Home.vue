@@ -3,9 +3,9 @@
     <div class="header">
       <el-button @click="gotoPreviousWeek" :icon="ArrowLeft"> 上一周 </el-button>
       <div class="week-title">
-        <h2>{{ formatDate(currentWeekStart) }} 值班安排</h2>
-        <p class="shift-name" v-if="currentShift">班次：{{ currentShift.name }}</p>
-      </div>
+          <h2>{{ formatDate(currentWeekStart) }} 值班安排</h2>
+          <p class="shift-name" v-if="currentShift">班次：{{ currentShift.name }}</p>
+        </div>
       <el-button @click="gotoNextWeek" :icon="ArrowRight"> 下一周 </el-button>
 
       <!-- <div class="week-selector">
@@ -28,7 +28,7 @@
     <div class="container">
       <div class="table-container">
         <!-- 使用统一的表格组件 -->
-        <ScheduleTable
+         <ScheduleTable
           v-if="schedule && weekendSchedule && persons.length > 0"
           :persons="persons"
           :weekday-schedule="schedule"
@@ -196,16 +196,13 @@ async function loadSchedule() {
 
 function getShiftIndexForWeek(weekStart: string): number {
   loadData()
-  if (basicData.value) {
-    const baseDate = new Date(basicData.value.baseWeek)
-    const currentDate = new Date(weekStart)
-    const weeksDiff = Math.floor(
-      (currentDate.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
-    )
+  const baseDate = new Date(basicData.value.baseWeek)
+  const currentDate = new Date(weekStart)
+  const weeksDiff = Math.floor(
+    (currentDate.getTime() - baseDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
+  )
 
-    return weeksDiff % shifts.value.length
-  }
-  return 0
+  return weeksDiff % shifts.value.length
 }
 
 async function gotoPreviousWeek() {

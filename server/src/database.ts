@@ -1,5 +1,4 @@
 import Database from 'better-sqlite3'
-import { app } from 'electron'
 import path from 'path'
 
 export interface Person {
@@ -55,7 +54,7 @@ export class DatabaseManager {
   private db: Database.Database
 
   constructor() {
-    const dbPath = path.join(app.getPath('userData'), 'onduty.db')
+    const dbPath = path.join(process.cwd(), 'onduty.db')
     this.db = new Database(dbPath)
     this.initTables()
     this.initDefaultData() // 添加默认数据初始化

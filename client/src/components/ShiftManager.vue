@@ -184,18 +184,8 @@ async function moveShiftUp(index: number) {
   const shift1 = props.shifts[index]
   const shift2 = props.shifts[index - 1]
 
-  await window.api.updateShift({
-    ...shift1,
-    order: shift2.order,
-    mondayPersonIds: JSON.stringify(shift1.mondayPersonIds),
-    fridayPersonIds: JSON.stringify(shift1.fridayPersonIds)
-  })
-  await window.api.updateShift({
-    ...shift2,
-    order: shift1.order,
-    mondayPersonIds: JSON.stringify(shift2.mondayPersonIds),
-    fridayPersonIds: JSON.stringify(shift2.fridayPersonIds)
-  })
+  await window.api.updateShift({ ...shift1, order: shift2.order })
+  await window.api.updateShift({ ...shift2, order: shift1.order })
 
   emit('refresh')
 }
@@ -204,18 +194,8 @@ async function moveShiftDown(index: number) {
   const shift1 = props.shifts[index]
   const shift2 = props.shifts[index + 1]
 
-  await window.api.updateShift({
-    ...shift1,
-    order: shift2.order,
-    mondayPersonIds: JSON.stringify(shift1.mondayPersonIds),
-    fridayPersonIds: JSON.stringify(shift1.fridayPersonIds)
-  })
-  await window.api.updateShift({
-    ...shift2,
-    order: shift1.order,
-    mondayPersonIds: JSON.stringify(shift2.mondayPersonIds),
-    fridayPersonIds: JSON.stringify(shift2.fridayPersonIds)
-  })
+  await window.api.updateShift({ ...shift1, order: shift2.order })
+  await window.api.updateShift({ ...shift2, order: shift1.order })
 
   emit('refresh')
 }
@@ -250,11 +230,7 @@ async function confirmPersonSelection() {
         : JSON.stringify(currentShift.fridayPersonIds)
   }
 
-  await window.api.updateShift({
-    ...updatedShift,
-    mondayPersonIds: updatedShift.mondayPersonIds as string,
-    fridayPersonIds: updatedShift.fridayPersonIds as string
-  })
+  await window.api.updateShift(updatedShift)
   // 清除该班次的所有排班记录，强制重新生成
   await window.api.clearSchedulesByShiftId(currentShiftId.value)
   ElMessage.success('添加成功，排班表将自动更新')
@@ -283,11 +259,7 @@ async function removePersonFromShift(shiftId: number, day: 'monday' | 'friday', 
         : JSON.stringify(currentShift.fridayPersonIds)
   }
 
-  await window.api.updateShift({
-    ...updatedShift,
-    mondayPersonIds: updatedShift.mondayPersonIds as string,
-    fridayPersonIds: updatedShift.fridayPersonIds as string
-  })
+  await window.api.updateShift(updatedShift)
   // 清除该班次的所有排班记录，强制重新生成
   await window.api.clearSchedulesByShiftId(shiftId)
   ElMessage.success('移除成功，排班表将自动更新')

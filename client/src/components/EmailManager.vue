@@ -19,7 +19,7 @@
         </el-form-item>
 
         <el-form-item label="启用 SSL">
-          <el-switch v-model="form.smtpSecure" />
+          <el-switch v-model="form.smtpSecure"  />
         </el-form-item>
 
         <el-form-item label="发送邮箱" required>
@@ -54,7 +54,10 @@
         </el-form-item>
 
         <el-form-item label="抄送邮箱">
-          <el-input v-model="form.ccEmails" placeholder="123456,654321 (用逗号分隔的6位数字)" />
+          <el-input
+            v-model="form.ccEmails"
+            placeholder="123456,654321 (用逗号分隔的6位数字)"
+          />
           <div class="form-tip">多个抄送邮箱用逗号分隔，仅支持6位数字</div>
         </el-form-item>
       </el-card>
@@ -109,9 +112,8 @@ async function saveConfig() {
   try {
     const plainConfig = {
       ...form,
-      id: 1, // Add default ID
-      smtpSecure: form.smtpSecure,
-      enabled: form.enabled
+      smtpSecure: form.smtpSecure ? 1 : 0,
+      enabled: form.enabled ? 1 : 0
     }
     await window.api.updateEmailConfig(plainConfig)
     ElMessage.success('配置保存成功')

@@ -15,9 +15,7 @@
         <h4>组长人员</h4>
         <div class="person-tags">
           <el-tag
-            v-for="personId in typeof weekendShift?.leaderIds === 'string'
-              ? JSON.parse(weekendShift.leaderIds)
-              : weekendShift?.leaderIds || []"
+            v-for="personId in weekendShift?.leaderIds || []"
             :key="personId"
             closable
             @close="removeLeader(personId)"
@@ -32,9 +30,7 @@
         <h4>加班先锋人员</h4>
         <div class="person-tags">
           <el-tag
-            v-for="personId in typeof weekendShift?.pioneerIds === 'string'
-              ? JSON.parse(weekendShift.pioneerIds)
-              : weekendShift?.pioneerIds || []"
+            v-for="personId in weekendShift?.pioneerIds || []"
             :key="personId"
             closable
             @close="removePioneer(personId)"
@@ -118,13 +114,7 @@ const availablePersons = computed(() => {
   if (!props.weekendShift || !selectorType.value) return props.persons
 
   const currentIds =
-    selectorType.value === 'leader'
-      ? typeof props.weekendShift.leaderIds === 'string'
-        ? JSON.parse(props.weekendShift.leaderIds)
-        : props.weekendShift.leaderIds
-      : typeof props.weekendShift.pioneerIds === 'string'
-        ? JSON.parse(props.weekendShift.pioneerIds)
-        : props.weekendShift.pioneerIds
+    selectorType.value === 'leader' ? props.weekendShift.leaderIds : props.weekendShift.pioneerIds
 
   return props.persons.filter((p) => !currentIds.includes(p.id))
 })
@@ -147,19 +137,9 @@ async function confirmSelection() {
   const updatedShift = { ...props.weekendShift }
 
   if (selectorType.value === 'leader') {
-    updatedShift.leaderIds = [
-      ...(typeof props.weekendShift.leaderIds === 'string'
-        ? JSON.parse(props.weekendShift.leaderIds)
-        : props.weekendShift.leaderIds),
-      ...selectedPersons.value
-    ]
+    updatedShift.leaderIds = [...props.weekendShift.leaderIds, ...selectedPersons.value]
   } else {
-    updatedShift.pioneerIds = [
-      ...(typeof props.weekendShift.pioneerIds === 'string'
-        ? JSON.parse(props.weekendShift.pioneerIds)
-        : props.weekendShift.pioneerIds),
-      ...selectedPersons.value
-    ]
+    updatedShift.pioneerIds = [...props.weekendShift.pioneerIds, ...selectedPersons.value]
   }
 
   await window.api.updateWeekendShift({
@@ -176,20 +156,11 @@ async function confirmSelection() {
 async function removeLeader(personId: number) {
   if (!props.weekendShift) return
 
-  const leaderIds: number[] =
-    typeof props.weekendShift.leaderIds === 'string'
-      ? JSON.parse(props.weekendShift.leaderIds)
-      : props.weekendShift.leaderIds
-  const updatedLeaderIds = leaderIds.filter((id) => id !== personId)
+  const updatedLeaderIds = props.weekendShift.leaderIds.filter((id) => id !== personId)
 
   await window.api.updateWeekendShift({
     ...props.weekendShift,
-    leaderIds: JSON.stringify(updatedLeaderIds),
-    pioneerIds: JSON.stringify(
-      typeof props.weekendShift.pioneerIds === 'string'
-        ? JSON.parse(props.weekendShift.pioneerIds)
-        : props.weekendShift.pioneerIds
-    )
+    leaderIds: JSON.stringify(updatedLeaderIds)
   })
 
   ElMessage.success('移除成功')
@@ -199,19 +170,10 @@ async function removeLeader(personId: number) {
 async function removePioneer(personId: number) {
   if (!props.weekendShift) return
 
-  const pioneerIds: number[] =
-    typeof props.weekendShift.pioneerIds === 'string'
-      ? JSON.parse(props.weekendShift.pioneerIds)
-      : props.weekendShift.pioneerIds
-  const updatedPioneerIds = pioneerIds.filter((id) => id !== personId)
+  const updatedPioneerIds = props.weekendShift.pioneerIds.filter((id) => id !== personId)
 
   await window.api.updateWeekendShift({
     ...props.weekendShift,
-    leaderIds: JSON.stringify(
-      typeof props.weekendShift.leaderIds === 'string'
-        ? JSON.parse(props.weekendShift.leaderIds)
-        : props.weekendShift.leaderIds
-    ),
     pioneerIds: JSON.stringify(updatedPioneerIds)
   })
 
@@ -228,21 +190,13 @@ function getRotationPreview(): Person[] {
   if (!props.weekendShift) return []
 
   const rotation: Person[] = []
-  const leaderIds: number[] =
-    typeof props.weekendShift.leaderIds === 'string'
-      ? JSON.parse(props.weekendShift.leaderIds)
-      : props.weekendShift.leaderIds
-  const leaders = leaderIds
-    .map((id) => props.persons.find((p) => p.id === id))
-    .filter(Boolean) as Person[]
+  const leaders = props.weekendShift.leaderIds.map(id =>
+    props.persons.find(p => p.id === id)
+  ).filter(Boolean) as Person[]
 
-  const pioneerIds: number[] =
-    typeof props.weekendShift.pioneerIds === 'string'
-      ? JSON.parse(props.weekendShift.pioneerIds)
-      : props.weekendShift.pioneerIds
-  const pioneers = pioneerIds
-    .map((id) => props.persons.find((p) => p.id === id))
-    .filter(Boolean) as Person[]
+  const pioneers = props.weekendShift.pioneerIds.map(id =>
+    props.persons.find(p => p.id === id)
+  ).filter(Boolean) as Person[]
 
   const pioneerQueue: Person[] = [...pioneers]
   const pendingSecondRound: Person[] = []
@@ -268,20 +222,12 @@ function getRotationPreview(): Person[] {
 }
 
 // 新增：获取普通人员（排除组长和加班先锋）
-function getRegularPersons(persons: Person[], weekendShift: WeekendShift | null): Person[] {
+function getRegularPersons(persons: Person[], weekendShift: WeekendShift): Person[] {
   if (!weekendShift) return persons
 
-  const leaderIds = new Set<number>(
-    typeof weekendShift.leaderIds === 'string'
-      ? JSON.parse(weekendShift.leaderIds)
-      : weekendShift.leaderIds
-  )
-  const pioneerIds = new Set<number>(
-    typeof weekendShift.pioneerIds === 'string'
-      ? JSON.parse(weekendShift.pioneerIds)
-      : weekendShift.pioneerIds
-  )
-  const excludedIds = new Set<number>([...leaderIds, ...pioneerIds])
+  const leaderIds = new Set(weekendShift.leaderIds)
+  const pioneerIds = new Set(weekendShift.pioneerIds)
+  const excludedIds = new Set([...leaderIds, ...pioneerIds])
 
   return persons.filter((person) => !excludedIds.has(person.id))
 }

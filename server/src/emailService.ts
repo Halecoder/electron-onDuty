@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer'
-import { DatabaseManager, EmailConfig, Person } from './database'
+import { getDatabase, DatabaseManager, EmailConfig, Person } from './database'
 import { WeekendSchedule } from './types'
 
-export class EmailService {
+class EmailService {
   private db: DatabaseManager
   private transporter: nodemailer.Transporter | null = null
 
@@ -274,4 +274,19 @@ export class EmailService {
 
     return schedule
   }
+}
+
+// 邮件服务
+let emailServiceInstance: EmailService | null = null
+
+export function setupEmailService() {
+  const db = getDatabase()
+  emailServiceInstance = new EmailService(db)
+}
+
+export function getEmailService(): EmailService {
+  if (!emailServiceInstance) {
+    setupEmailService()
+  }
+  return emailServiceInstance as EmailService
 }

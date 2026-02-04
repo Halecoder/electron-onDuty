@@ -1,4 +1,4 @@
-import { Person, Shift, WeekSchedule, WeekendShift, BasicData, WeekendSchedule } from './types'
+import { Person, Shift, WeekSchedule, WeekendShift, BasicData, WeekendSchedule } from '../types'
 
 export function generateSchedule(persons: Person[], shift: Shift): WeekSchedule {
   const schedule: WeekSchedule = {

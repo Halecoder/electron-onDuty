@@ -7,12 +7,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
 import router from './router'
 
-import { api } from './services/api'
-
 const app = createApp(App)
-
-// 挂载全局 api
-window.api = api
 
 // 注册所有图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

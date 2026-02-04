@@ -3,17 +3,31 @@
     <div class="table-header">
       <h3 class="table-title">值班安排表</h3>
       <div class="button-group">
-        <el-button type="warning" @click="handleRebuildBefore" :icon="Refresh" class="rebuild-btn">
+        <el-button
+          type="warning"
+          @click="handleRebuildBefore"
+          :icon="Refresh"
+          class="rebuild-btn"
+        >
           重建历史数据（本周前）
         </el-button>
-        <el-button type="danger" @click="handleRebuildFrom" :icon="Refresh" class="rebuild-btn">
+        <el-button
+          type="danger"
+          @click="handleRebuildFrom"
+          :icon="Refresh"
+          class="rebuild-btn"
+        >
           重置本周数据
         </el-button>
       </div>
     </div>
 
     <!-- 重建本周前数据确认对话框 -->
-    <el-dialog v-model="rebuildBeforeConfirmVisible" title="确认重建" width="400px">
+    <el-dialog
+      v-model="rebuildBeforeConfirmVisible"
+      title="确认重建"
+      width="400px"
+    >
       <p>确定要重建本周之前的所有值班历史数据吗？</p>
       <p class="warning-text">此操作将删除本周之前的历史排班记录，本周及以后数据保留。</p>
       <template #footer>
@@ -23,7 +37,11 @@
     </el-dialog>
 
     <!-- 重置本周数据确认对话框 -->
-    <el-dialog v-model="rebuildFromConfirmVisible" title="确认重置" width="400px">
+    <el-dialog
+      v-model="rebuildFromConfirmVisible"
+      title="确认重置"
+      width="400px"
+    >
       <p>确定要重置本周及以后的所有值班数据吗？</p>
       <p class="warning-text">此操作将删除本周及以后的排班记录，本周之前历史数据保留。</p>
       <template #footer>
@@ -33,12 +51,19 @@
     </el-dialog>
 
     <!-- 修改基准索引对话框 -->
-    <el-dialog v-model="indexDialogVisible" title="修改基准索引" width="600px">
+    <el-dialog
+      v-model="indexDialogVisible"
+      title="修改基准索引"
+      width="600px"
+    >
       <el-form label-width="200px">
-        <el-form-item
-          :label="contextMenuDay === 5 ? '周六排班索引（规则1）' : '周日排班索引（规则2）'"
-        >
-          <el-input-number v-model="tempIndexValue" :min="0" :max="999" controls-position="right" />
+        <el-form-item :label="contextMenuDay === 5 ? '周六排班索引（规则1）' : '周日排班索引（规则2）'">
+          <el-input-number
+            v-model="tempIndexValue"
+            :min="0"
+            :max="999"
+            controls-position="right"
+          />
         </el-form-item>
       </el-form>
 
@@ -56,11 +81,9 @@
           </el-tag>
         </div>
         <p class="preview-tip">
-          {{
-            contextMenuDay === 5
-              ? '规则1将从以上特殊人员（组长、加班先锋）中轮流选择一位值班'
-              : '规则2将从以上普通人员中轮流选择一位值班'
-          }}
+          {{ contextMenuDay === 5
+            ? '规则1将从以上特殊人员（组长、加班先锋）中轮流选择一位值班'
+            : '规则2将从以上普通人员中轮流选择一位值班' }}
         </p>
       </div>
 
@@ -167,7 +190,7 @@ async function handleCellClick(row: any, column: any, cell: any, event: Event) {
 
   // 只处理日期列（不包括姓名列）
   if (columnIndex >= 0 && columnIndex <= 6) {
-    const person = props.persons.find((p) => p.name === row.name && p.email === row.email)
+    const person = props.persons.find(p => p.name === row.name && p.email === row.email)
     if (!person) return
 
     const dayIndex = columnIndex
@@ -204,9 +227,9 @@ async function handleCellClick(row: any, column: any, cell: any, event: Event) {
       if (currentValue) {
         // 取消周末值班
         if (isSaturday) {
-          newWeekendSchedule.saturday = newWeekendSchedule.saturday.filter((id) => id !== person.id)
+          newWeekendSchedule.saturday = newWeekendSchedule.saturday.filter(id => id !== person.id)
         } else {
-          newWeekendSchedule.sunday = newWeekendSchedule.sunday.filter((id) => id !== person.id)
+          newWeekendSchedule.sunday = newWeekendSchedule.sunday.filter(id => id !== person.id)
         }
 
         ElMessage.success('已取消周末值班')
@@ -248,10 +271,9 @@ function handleCellContextMenu(row: any, column: any, event: Event) {
 
     // 设置当前索引值
     if (props.basicData) {
-      tempIndexValue.value =
-        columnIndex === 5
-          ? props.basicData.weekendRotationIndex_1
-          : props.basicData.weekendRotationIndex_2
+      tempIndexValue.value = columnIndex === 5
+        ? props.basicData.weekendRotationIndex_1
+        : props.basicData.weekendRotationIndex_2
     }
 
     indexDialogVisible.value = true
@@ -306,20 +328,12 @@ function getIndexPreview(): Person[] {
 function getWeekendRotationList(persons: Person[], weekendShift: WeekendShift): Person[] {
   const rotation: Person[] = []
 
-  const leaderIds: number[] =
-    typeof weekendShift.leaderIds === 'string'
-      ? JSON.parse(weekendShift.leaderIds)
-      : weekendShift.leaderIds
-  const leaders = leaderIds
-    .map((id) => persons.find((p) => p.id === id))
+  const leaders = weekendShift.leaderIds
+    .map(id => persons.find(p => p.id === id))
     .filter((p): p is Person => !!p)
 
-  const pioneerIds: number[] =
-    typeof weekendShift.pioneerIds === 'string'
-      ? JSON.parse(weekendShift.pioneerIds)
-      : weekendShift.pioneerIds
-  const pioneers = pioneerIds
-    .map((id) => persons.find((p) => p.id === id))
+  const pioneers = weekendShift.pioneerIds
+    .map(id => persons.find(p => p.id === id))
     .filter((p): p is Person => !!p)
 
   const pioneerQueue = [...pioneers]
@@ -355,19 +369,11 @@ function getWeekendRotationList(persons: Person[], weekendShift: WeekendShift): 
 function getRegularPersons(persons: Person[], weekendShift: WeekendShift): Person[] {
   if (!weekendShift) return persons
 
-  const leaderIds = new Set<number>(
-    typeof weekendShift.leaderIds === 'string'
-      ? JSON.parse(weekendShift.leaderIds)
-      : weekendShift.leaderIds
-  )
-  const pioneerIds = new Set<number>(
-    typeof weekendShift.pioneerIds === 'string'
-      ? JSON.parse(weekendShift.pioneerIds)
-      : weekendShift.pioneerIds
-  )
-  const excludedIds = new Set<number>([...leaderIds, ...pioneerIds])
+  const leaderIds = new Set(weekendShift.leaderIds)
+  const pioneerIds = new Set(weekendShift.pioneerIds)
+  const excludedIds = new Set([...leaderIds, ...pioneerIds])
 
-  return persons.filter((person) => !excludedIds.has(person.id))
+  return persons.filter(person => !excludedIds.has(person.id))
 }
 
 const tableData = computed(() => {
@@ -390,31 +396,28 @@ const tableData = computed(() => {
   })
 })
 
-function getCellStyle({ row, column, rowIndex, columnIndex }: any) {
+function getCellStyle({ row, column, rowIndex, columnIndex }) {
   if (columnIndex >= 1) {
     const dayIndex = columnIndex - 1
     const isOnDuty = row[`day${dayIndex}`]
 
     if (isOnDuty) {
       // 周六\周日使用橙色，其他工作日使用绿色
-      if (dayIndex === 5) {
-        // 周六
+      if (dayIndex === 5) { // 周六
         return {
           backgroundColor: '#e6a23c',
           color: 'white',
           fontWeight: 'bold',
           cursor: 'context-menu'
         }
-      } else if (dayIndex === 6) {
-        // 周日
+      } else if (dayIndex === 6) { // 周日
         return {
           backgroundColor: '#e6a23c',
           color: 'white',
           fontWeight: 'bold',
           cursor: 'context-menu'
         }
-      } else {
-        // 工作日
+      } else { // 工作日
         return {
           backgroundColor: '#67c23a',
           color: 'white',

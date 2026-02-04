@@ -1,7 +1,6 @@
 import * as cron from 'node-cron'
-import { DatabaseManager } from './database'
-import { EmailService } from './emailService'
-
+import { getDatabase, DatabaseManager } from './database'
+import { getEmailService, EmailService } from './emailService'
 
 function getWeekStart(date: Date): string {
   const d = new Date(date)
@@ -19,14 +18,14 @@ function formatLocalDate(d: Date): string {
   return `${year}-${month}-${day}`
 }
 
-export class CronService {
+class CronService {
   private db: DatabaseManager
   private emailService: EmailService
   private currentTask: cron.ScheduledTask | null = null
 
   constructor(db: DatabaseManager) {
     this.db = db
-    this.emailService = new EmailService(db)
+    this.emailService = getEmailService()
   }
 
   startCronJob(): void {
@@ -36,17 +35,21 @@ export class CronService {
 
     if (config.enabled && config.cronExpression) {
       try {
-        this.currentTask = cron.schedule(config.cronExpression, async () => {
-          try {
-            const weekStart = getWeekStart(new Date())
-            await this.emailService.sendScheduleEmail(weekStart)
-            console.log('定时邮件发送成功')
-          } catch (error) {
-            console.error('定时邮件发送失败:', error)
+        this.currentTask = cron.schedule(
+          config.cronExpression,
+          async () => {
+            try {
+              const weekStart = getWeekStart(new Date())
+              await this.emailService.sendScheduleEmail(weekStart)
+              console.log('定时邮件发送成功')
+            } catch (error) {
+              console.error('定时邮件发送失败:', error)
+            }
+          },
+          {
+            scheduled: true
           }
-        }, {
-          scheduled: true
-        })
+        )
 
         console.log('定时任务已启动:', config.cronExpression)
       } catch (error) {
@@ -66,4 +69,20 @@ export class CronService {
   restartCronJob(): void {
     this.startCronJob()
   }
+}
+
+// 定时任务服务
+let cronServiceInstance: CronService | null = null
+
+export function setupCronService() {
+  const db = getDatabase()
+  cronServiceInstance = new CronService(db)
+  cronServiceInstance.startCronJob()
+}
+
+export function getCronService(): CronService {
+  if (!cronServiceInstance) {
+    setupCronService()
+  }
+  return cronServiceInstance as CronService
 }
